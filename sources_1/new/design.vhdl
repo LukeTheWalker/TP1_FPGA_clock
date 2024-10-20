@@ -87,12 +87,53 @@ architecture a of main is
         end if;
     end advance_state;
 
-begin
+    procedure secondary_function (
+        signal b1, b2 : in std_logic;
+        signal state   : inout std_logic_vector (2  downto 0);
+        signal a1,a2,a3,a4 : inout std_logic_vector (3  downto 0);
+        signal aa      : inout std_logic;
+        signal c1,c2,c3,c4 : inout std_logic_vector (3  downto 0);
+        signal secs    : inout std_logic_vector (11 downto 0);
+        signal damp1, damp2 : inout std_logic) is
+    
+    begin
+        if b1 = '1' and damp1 = '0' then
+            advance_state(state);
+            damp1 <= '1';
+        elsif b1 = '0' then
+            damp1 <= '0';
+        end if;
+        if b2 = '1' and damp2 = '0' then
+            case state is
+                when "001" => 
+                    c2 <= c2 + 1;
+                    increment_hour(c1,c2);
+                when "010" =>
+                    c4 <= c4 + 1;
+                    increment_clock(c1,c2,c3,c4);
+                when "011" =>
+                    secs <= x"001";
+                when "100" => 
+                    aa <= not aa;
+                when "101" =>
+                    a2 <= a2 + 1;
+                    increment_hour(a1,a2);
+                when "110" =>
+                    a4 <= a4 + 1;
+                    increment_clock(a1,a2,a3,a4);
+                when others =>
+                    null;
+            end case;
+            damp2 <= '1';
+        elsif b2 = '0' then
+            damp2 <= '0';
+        end if;
+    end secondary_function;
 
+begin
     time_counter : process(clk,rst)
     begin
         if rst= '1' then
-            a1 <= x"0"; a2 <= x"0"; a3 <= x"0"; a4 <=x"0";
             c1 <= x"0"; c2 <= x"0"; c3 <= x"0"; c4 <=x"0";
             secs <= x"000";
             state <= "000";
@@ -100,77 +141,19 @@ begin
             aa <= '0'; damp1 <= '0'; damp2 <= '0';
         elsif clk'event and clk = '1' then
             secs <= secs+1;
-            if b1 = '1' and damp1 = '0' then
-                advance_state(state);
-                damp1 <= '1';
-            elsif b1 = '0' then
-                damp1 <= '0';
-            end if;
-            if b2 = '1' and damp2 = '0' then
-                case state is
-                    when "001" => 
-                        c2 <= c2 + 1;
-                        increment_hour(c1,c2);
-                    when "010" =>
-                        c4 <= c4 + 1;
-                        increment_clock(c1,c2,c3,c4);
-                    when "011" =>
-                        secs <= x"001";
-                    when "100" => 
-                        aa <= not aa;
-                    when "101" =>
-                        a2 <= a2 + 1;
-                        increment_hour(a1,a2);
-                    when "110" =>
-                        a4 <= a4 + 1;
-                        increment_clock(a1,a2,a3,a4);
-                    when others =>
-                        null;
-                end case;
-                damp2 <= '1';
-            elsif b2 = '0' then
-                damp2 <= '0';
-            end if;
 
+            secondary_function(b1,b2,state,a1,a2,a3,a4,aa,c1,c2,c3,c4,secs,damp1,damp2);
+            
             if secs >= x"257" and not (b2 = '1' and state = "011") then
                 secs <= x"000"; c4 <= c4 + 1;
                 increment_clock(c1,c2,c3,c4);
             end if;
         end if;
-    end process;        
+    end process;
+    
+    moore_machine : process(c1, c2, c3, c4)
+    begin
+        d1 <= c1; d2 <= c2; d3 <= c3; d4 <= c4;
+    end process;
 
-
-    -- mode_switcher : process(clk, rst, b1)
-    -- begin
-    --     if rst= '1' then
-    --         state <= "000";
-    --         a1 <= x"0"; a2 <= x"0"; a3 <= x"0"; a4 <=x"0";
-    --     elsif clk'event and clk = '1' then
-    --         if b1 = '1' then
-    --             state <= state + 1;
-    --         end if;
-    --         if b2 = '1' then
-    --             case state is
-    --                 when "001" => 
-    --                     c2 <= c2 + 1;
-    --                     increment_hour(c1,c2);
-    --                 when "010" =>
-    --                     c4 <= c4 + 1;
-    --                     increment_clock(c1,c2,c3,c4);
-    --                 when "011" =>
-    --                     secs <= x"000";
-    --                 when "100" => 
-    --                     aa <= not aa;
-    --                 when "101" =>
-    --                     a2 <= a2 + 1;
-    --                     increment_hour(a1,a2);
-    --                 when "110" =>
-    --                     a4 <= a4 + 1;
-    --                     increment_clock(a1,a2,a3,a4);
-    --                 when others =>
-    --                     null;
-    --             end case;
-    --         end if;
-    --     end if;        
-    -- end process;
 end a;
