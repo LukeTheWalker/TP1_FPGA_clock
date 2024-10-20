@@ -41,21 +41,13 @@ Port (
 end main;
 
 architecture a of main is
-    -- TYPE STATE IS (
-    --     NORMAL,
-    --     SET_HOUR,
-    --     SET_MINUTE,
-    --     RST_SEC,
-    --     TOGGLE_ALLARM,
-    --     SET_ALLARM_HOUR,
-    --     SET_ALLARM_MINUTE
-    -- );
     signal state        : std_logic_vector (2  downto 0);
     signal a1,a2,a3,a4  : std_logic_vector (3  downto 0);
     signal aa           : std_logic;
     signal c1,c2,c3,c4  : std_logic_vector (3  downto 0);
     signal secs         : std_logic_vector (11 downto 0);
     signal damp1, damp2 : std_logic;
+    signal snooze       : std_logic;
 
     procedure increment_hour (signal hd, hu : inout std_logic_vector (3  downto 0)) is
     begin
@@ -143,7 +135,7 @@ begin
             secs <= secs+1;
 
             secondary_function(b1,b2,state,a1,a2,a3,a4,aa,c1,c2,c3,c4,secs,damp1,damp2);
-            
+
             if secs >= x"257" and not (b2 = '1' and state = "011") then
                 secs <= x"000"; c4 <= c4 + 1;
                 increment_clock(c1,c2,c3,c4);
@@ -154,6 +146,20 @@ begin
     moore_machine : process(c1, c2, c3, c4)
     begin
         d1 <= c1; d2 <= c2; d3 <= c3; d4 <= c4;
+    end process;
+
+    alarm_set : process(c1, c2, c3, c4, a1, a2, a3, a4, aa, b2)
+    begin
+        if c1 = a1 and c2 = a2 and c3 = a3 and c4 = a4 and aa = '1' then
+            leds <= '1';
+            snooze <= '1';
+        end if;
+
+        if b2'event and b2 = '1' and snooze = '1' and state = "000" then
+            leds <= '0';
+            snooze <= '0';
+        end if;
+
     end process;
 
 end a;
