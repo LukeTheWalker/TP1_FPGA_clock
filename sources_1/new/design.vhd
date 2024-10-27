@@ -148,7 +148,7 @@ begin
         d1 <= c1; d2 <= c2; d3 <= c3; d4 <= c4;
     end process;
 
-    alarm_set : process(c1, c2, c3, c4, a1, a2, a3, a4, aa, b2)
+    alarm_set : process(c1, c2, c3, c4, a1, a2, a3, a4, aa, b2, state, snooze)
     begin
         if c1 = a1 and c2 = a2 and c3 = a3 and c4 = a4 and aa = '1' then
             leds <= '1';
