@@ -22,6 +22,8 @@
 library IEEE;
 use IEEE.STD_LOGIC_1164.ALL;
 use IEEE.STD_LOGIC_unsigned.ALL;
+use IEEE.NUmERIC_STD.ALL;
+
 -- Uncomment the following library declaration if using
 -- arithmetic functions with Signed or Unsigned values
 --use IEEE.NUMERIC_STD.ALL;
@@ -35,7 +37,8 @@ entity main is
 Port (  
     clk,rst     : in std_logic; 
     b1,b2       : in std_logic;
-    d1,d2,d3,d4 : out std_logic_vector (3 downto 0)
+    d1,d2,d3,d4 : out std_logic_vector (3 downto 0);
+    aa_led      : out std_logic
 );
 end main;
 
@@ -57,6 +60,16 @@ architecture a of main is
             hu <= hu - x"3"; hd <= x"0";
         end if;
     end increment_hour;
+
+    procedure increment_minute (signal md, mu : inout std_logic_vector (3  downto 0)) is
+    begin
+        if mu >= x"9" then
+            mu <= mu - x"9"; md <= md + 1;
+            if md >= x"5" then
+                md <= md - x"5";
+            end if;
+        end if;
+    end increment_minute;
 
     procedure increment_clock (signal hd, hu, md, mu : inout std_logic_vector (3  downto 0)) is 
     begin 
@@ -101,7 +114,7 @@ architecture a of main is
                     increment_hour(c1,c2);
                 when "010" =>
                     c4 <= c4 + 1;
-                    increment_clock(c1,c2,c3,c4);
+                    increment_minute(c3,c4);
                 when "011" =>
                     secs <= x"001";
                 when "100" => 
@@ -111,7 +124,7 @@ architecture a of main is
                     increment_hour(a1,a2);
                 when "110" =>
                     a4 <= a4 + 1;
-                    increment_clock(a1,a2,a3,a4);
+                    increment_minute(a3,a4);
                 when others =>
                     null;
             end case;
@@ -150,12 +163,24 @@ begin
         end if;
     end process;
     
-    moore_machine : process(c1, c2, c3, c4, snooze)
+    moore_machine : process(secs, c1, c2, c3, c4, a1, a2, a3, a4, state, snooze)
     begin
         if snooze = '1' then
             d1 <= x"a"; d2 <= x"a"; d3 <= x"a"; d4 <= x"a";
+        elsif state = "101" or state = "110" then
+            if to_integer(unsigned(secs)) mod 10 < 7 then
+                d1 <= a1; d2 <= a2; d3 <= a3; d4 <= a4;
+            else 
+                if state = "101" then
+                    d1 <= x"f"; d2 <= x"f"; d3 <= a3; d4 <= a4;
+                else
+                    d1 <= a1; d2 <= a2; d3 <= x"f"; d4 <= x"f";
+                end if;
+            end if;
         else 
             d1 <= c1; d2 <= c2; d3 <= c3; d4 <= c4;
         end if;
     end process;
+
+    aa_led <= aa;
 end a;

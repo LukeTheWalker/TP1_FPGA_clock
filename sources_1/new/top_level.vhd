@@ -37,7 +37,8 @@ Port (
     clk_100Mhz,rst      : in std_logic; 
     b1,b2               : in std_logic;
     an                  : out std_logic_vector (3 downto 0);
-    seg                 : out std_logic_vector (6 downto 0)
+    seg                 : out std_logic_vector (6 downto 0);
+    aa_led              : out std_logic
 );
 
 end top_level;
@@ -56,7 +57,8 @@ architecture a of top_level is
     Port (
         clk, rst            : in std_logic; 
         b1, b2              : in std_logic;
-        d1, d2, d3, d4      : out std_logic_vector(3 downto 0)
+        d1, d2, d3, d4      : out std_logic_vector(3 downto 0);
+        aa_led              : out std_logic
     );
     end component;
 
@@ -69,7 +71,8 @@ architecture a of top_level is
         d1 => d1,
         d2 => d2,
         d3 => d3,
-        d4 => d4
+        d4 => d4,
+        aa_led => aa_led
     );
     first_clock_div  : process(clk_100Mhz,rst)
     begin
@@ -117,7 +120,7 @@ architecture a of top_level is
         when "1100" => seg <= "0110001"; -- C
         when "1101" => seg <= "1000010"; -- d
         when "1110" => seg <= "0110000"; -- E
-        when "1111" => seg <= "0111000"; -- F
+        when "1111" => seg <= "1111111"; -- off
         when others => seg <= "1111111"; -- off
         end case;
     end process;
@@ -125,24 +128,24 @@ architecture a of top_level is
     led_mux : process(an_tmp, d1, d2, d3, d4)
     begin
         case an_tmp is
-        when "00" =>
-            an <= "0111"; 
-            seg_tmp <= d1;
-            -- activate LED1 and Deactivate LED2, LED3, LED4
-        when "01" =>
-            an <= "1011";
-            seg_tmp <= d2; 
-            -- activate LED2 and Deactivate LED1, LED3, LED4
-        when "10" =>
-            an <= "1101"; 
-            seg_tmp <= d3;
-            -- activate LED3 and Deactivate LED2, LED1, LED4
-        when "11" =>
-            an <= "1110"; 
-            seg_tmp <= d4;
-            -- activate LED4 and Deactivate LED2, LED3, LED1
-        when others =>
-            null;
+            when "00" =>
+                an <= "0111"; 
+                seg_tmp <= d1;
+                -- activate LED1 and Deactivate LED2, LED3, LED4
+            when "01" =>
+                an <= "1011";
+                seg_tmp <= d2; 
+                -- activate LED2 and Deactivate LED1, LED3, LED4
+            when "10" =>
+                an <= "1101"; 
+                seg_tmp <= d3;
+                -- activate LED3 and Deactivate LED2, LED1, LED4
+            when "11" =>
+                an <= "1110"; 
+                seg_tmp <= d4;
+                -- activate LED4 and Deactivate LED2, LED3, LED1
+            when others =>
+                null;
         end case;
     end process;
 
