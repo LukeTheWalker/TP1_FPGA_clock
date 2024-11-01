@@ -35,8 +35,7 @@ entity main is
 Port (  
     clk,rst     : in std_logic; 
     b1,b2       : in std_logic;
-    d1,d2,d3,d4 : out std_logic_vector (3 downto 0);
-    leds        : out std_logic
+    d1,d2,d3,d4 : out std_logic_vector (3 downto 0)
 );
 end main;
 
@@ -131,6 +130,7 @@ begin
             state <= "000";
             a1 <= x"0"; a2 <= x"0"; a3 <= x"0"; a4 <=x"0";
             aa <= '0'; damp1 <= '0'; damp2 <= '0';
+            snooze <= '0';
         elsif clk'event and clk = '1' then
             secs <= secs+1;
 
@@ -140,26 +140,22 @@ begin
                 secs <= x"000"; c4 <= c4 + 1;
                 increment_clock(c1,c2,c3,c4);
             end if;
+
+            if c1 = a1 and c2 = a2 and c3 = a3 and c4 = a4 and aa = '1' then
+                snooze <= '1';
+            elsif b2 = '1' and snooze = '1' and state = "000" then
+                snooze <= '0';
+            end if;
+
         end if;
     end process;
     
-    moore_machine : process(c1, c2, c3, c4)
+    moore_machine : process(c1, c2, c3, c4, snooze)
     begin
-        d1 <= c1; d2 <= c2; d3 <= c3; d4 <= c4;
-    end process;
-
-    alarm_set : process(c1, c2, c3, c4, a1, a2, a3, a4, aa, b2, state, snooze)
-    begin
-        if c1 = a1 and c2 = a2 and c3 = a3 and c4 = a4 and aa = '1' then
-            leds <= '1';
-            snooze <= '1';
+        if snooze = '1' then
+            d1 <= x"a"; d2 <= x"a"; d3 <= x"a"; d4 <= x"a";
+        else 
+            d1 <= c1; d2 <= c2; d3 <= c3; d4 <= c4;
         end if;
-
-        if b2'event and b2 = '1' and snooze = '1' and state = "000" then
-            leds <= '0';
-            snooze <= '0';
-        end if;
-
     end process;
-
 end a;

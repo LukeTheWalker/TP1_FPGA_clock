@@ -34,7 +34,7 @@ use IEEE.STD_LOGIC_unsigned.ALL;
 
 entity top_level is
 Port (  
-    clk_5mhz,rst     : in std_logic; 
+    clk_100Mhz,rst      : in std_logic; 
     b1,b2               : in std_logic;
     an                  : out std_logic_vector (3 downto 0);
     seg                 : out std_logic_vector (6 downto 0)
@@ -46,18 +46,17 @@ architecture a of top_level is
     -- signal clk_1khz : std_logic;
     signal counter_1 : std_logic_vector (22 downto 0);
     signal counter_2 : std_logic_vector (15 downto 0);
-    signal seg_tmp : std_logic_vector (3 downto 0);
-    signal an_tmp : std_logic_vector (1 downto 0);
+    signal seg_tmp   : std_logic_vector (3 downto 0);
+    signal an_tmp    : std_logic_vector (1 downto 0);
     
     signal clk_10hz       : std_logic;
     signal d1, d2, d3, d4 : std_logic_vector(3 downto 0);
 
     component main
     Port (
-        clk, rst       : in std_logic; 
+        clk, rst            : in std_logic; 
         b1, b2              : in std_logic;
-        d1, d2, d3, d4      : out std_logic_vector(3 downto 0);
-        leds                : out std_logic
+        d1, d2, d3, d4      : out std_logic_vector(3 downto 0)
     );
     end component;
 
@@ -72,12 +71,12 @@ architecture a of top_level is
         d3 => d3,
         d4 => d4
     );
-    first_clock_div  : process(clk_5mhz,rst)
+    first_clock_div  : process(clk_100Mhz,rst)
     begin
         if rst = '1' then
             clk_10hz <= '0';
             counter_1 <= (others => '0');
-        elsif rising_edge(clk_5mhz) then
+        elsif rising_edge(clk_100Mhz) then
             if counter_1 = x"4C4B40" then
                 counter_1 <= (others => '0');
                 clk_10hz <= not clk_10hz;
@@ -87,15 +86,13 @@ architecture a of top_level is
         end if;
     end process first_clock_div;
 
-    segment_driver : process(clk_5mhz, rst)
+    segment_driver : process(clk_100Mhz, rst)
     begin
         if rst = '1' then
             an_tmp <= (others => '0');
-            -- clk_1khz <= '0';
             counter_2 <= (others => '0');
-        elsif rising_edge(clk_5mhz) then
+        elsif rising_edge(clk_100Mhz) then
             if counter_2 = x"0000" then
-                -- clk_1khz <= not clk_1khz;
                 an_tmp <= an_tmp + 1;
             end if;
             counter_2 <= counter_2 + 1;
@@ -121,6 +118,7 @@ architecture a of top_level is
         when "1101" => seg <= "1000010"; -- d
         when "1110" => seg <= "0110000"; -- E
         when "1111" => seg <= "0111000"; -- F
+        when others => seg <= "1111111"; -- off
         end case;
     end process;
 
@@ -143,6 +141,8 @@ architecture a of top_level is
             an <= "1110"; 
             seg_tmp <= d4;
             -- activate LED4 and Deactivate LED2, LED3, LED1
+        when others =>
+            null;
         end case;
     end process;
 

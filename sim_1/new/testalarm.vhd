@@ -32,8 +32,7 @@ architecture sim of tb_alarm is
     Port (
         clk, rst      : in std_logic; 
         b1, b2        : in std_logic;
-        d1, d2, d3, d4 : out std_logic_vector(3 downto 0);
-        leds          : out std_logic
+        d1, d2, d3, d4 : out std_logic_vector(3 downto 0)
     );
     end component;
 
@@ -42,7 +41,6 @@ architecture sim of tb_alarm is
     signal rst       : std_logic := '0';
     signal b1, b2    : std_logic := '0';
     signal d1, d2, d3, d4 : std_logic_vector(3 downto 0);
-    signal leds      : std_logic;
 
     -- Clock period definition (for simulation)
     constant clk_period : time := 0.1 sec;
@@ -58,8 +56,7 @@ begin
         d1 => d1,
         d2 => d2,
         d3 => d3,
-        d4 => d4,
-        leds => leds
+        d4 => d4
     );
 
     -- Clock process
@@ -146,7 +143,7 @@ begin
 
         -- 3781 sec have passed
 
-        assert (leds = '1') report "Alarm did not trigger" severity error;
+        assert (d1 = x"a" and d2 = x"a" and d3 = x"a" and d4 = x"a") report "Alarm did not ring" severity error;
 
         b1 <= '1';  -- AHH
         wait for 1 sec;
@@ -154,7 +151,7 @@ begin
 
         wait for 1000 sec;
 
-        assert (leds = '1') report "Alarm is not ringing" severity error;
+        assert (d1 = x"a" and d2 = x"a" and d3 = x"a" and d4 = x"a") report "Alarm did not ring" severity error;
 
         b2 <= '1';  -- toggle alarm
         wait for 1 sec;
@@ -162,7 +159,7 @@ begin
 
         wait for 1 sec;
 
-        assert (leds = '0') report "Alarm did not stop ringing" severity error;
+        assert (d1 /= x"a" or d2 /= x"a" or d3 /= x"a" or d4 /= x"a") report "Alarm did not stop" severity error;
 
         -- Finish the simulation
         wait for 1 sec;
