@@ -22,7 +22,6 @@
 library IEEE;
 use IEEE.STD_LOGIC_1164.ALL;
 use IEEE.STD_LOGIC_unsigned.ALL;
-use IEEE.NUmERIC_STD.ALL;
 
 -- Uncomment the following library declaration if using
 -- arithmetic functions with Signed or Unsigned values
@@ -47,7 +46,7 @@ architecture a of main is
     signal a1,a2,a3,a4  : std_logic_vector (3  downto 0);
     signal aa           : std_logic;
     signal c1,c2,c3,c4  : std_logic_vector (3  downto 0);
-    signal secs         : std_logic_vector (11 downto 0);
+    signal s1, s2, s3   : std_logic_vector (3 downto 0);
     signal damp1, damp2 : std_logic;
     signal snooze       : std_logic;
 
@@ -92,13 +91,13 @@ architecture a of main is
     end advance_state;
 
     procedure secondary_function (
-        signal b1, b2 : in std_logic;
-        signal state   : inout std_logic_vector (2  downto 0);
-        signal a1,a2,a3,a4 : inout std_logic_vector (3  downto 0);
-        signal aa      : inout std_logic;
-        signal c1,c2,c3,c4 : inout std_logic_vector (3  downto 0);
-        signal secs    : inout std_logic_vector (11 downto 0);
-        signal damp1, damp2 : inout std_logic) is
+        signal b1, b2        : in std_logic;
+        signal state         : inout std_logic_vector (2  downto 0);
+        signal a1,a2,a3,a4   : inout std_logic_vector (3  downto 0);
+        signal aa            : inout std_logic;
+        signal c1,c2,c3,c4   : inout std_logic_vector (3  downto 0);
+        signal s1, s2, s3    : inout std_logic_vector (3 downto 0);
+        signal damp1, damp2  : inout std_logic) is
     
     begin
         if b1 = '1' and damp1 = '0' then
@@ -116,7 +115,7 @@ architecture a of main is
                     c4 <= c4 + 1;
                     increment_minute(c3,c4);
                 when "011" =>
-                    secs <= x"001";
+                    s1 <= x"0"; s2 <= x"0"; s3 <= x"1";
                 when "100" => 
                     aa <= not aa;
                 when "101" =>
@@ -139,19 +138,27 @@ begin
     begin
         if rst= '1' then
             c1 <= x"0"; c2 <= x"0"; c3 <= x"0"; c4 <=x"0";
-            secs <= x"000";
+            s1 <= x"0"; s2 <= x"0"; s3 <= x"0";
             state <= "000";
             a1 <= x"0"; a2 <= x"0"; a3 <= x"0"; a4 <=x"0";
             aa <= '0'; damp1 <= '0'; damp2 <= '0';
             snooze <= '0';
         elsif clk'event and clk = '1' then
-            secs <= secs+1;
+            s3 <= s3+1;
+            if s3 >= x"9" then
+                s3 <= x"0"; s2 <= s2 + 1;
+                if s2 >= x"9" then
+                    s2 <= x"0"; s1 <= s1 + 1;
 
-            secondary_function(b1,b2,state,a1,a2,a3,a4,aa,c1,c2,c3,c4,secs,damp1,damp2);
+                    secondary_function(b1,b2,state,a1,a2,a3,a4,aa,c1,c2,c3,c4,s1,s2,s3,damp1,damp2);
 
-            if secs >= x"257" and not (b2 = '1' and state = "011") then
-                secs <= x"000"; c4 <= c4 + 1;
-                increment_clock(c1,c2,c3,c4);
+                    if s1 >= x"6" and not (b2 = '1' and state = "011") then
+                        s1 <= x"0"; c4 <= c4 + 1;
+                        increment_clock(c1,c2,c3,c4);
+                    end if;
+                end if;
+            else 
+                secondary_function(b1,b2,state,a1,a2,a3,a4,aa,c1,c2,c3,c4,s1,s2,s3,damp1,damp2);
             end if;
 
             if c1 = a1 and c2 = a2 and c3 = a3 and c4 = a4 and aa = '1' then
@@ -163,20 +170,30 @@ begin
         end if;
     end process;
     
-    moore_machine : process(secs, c1, c2, c3, c4, a1, a2, a3, a4, state, snooze)
+    moore_machine : process(s1, s2, s3, c1, c2, c3, c4, a1, a2, a3, a4, state, snooze, b2)
     begin
         if snooze = '1' then
             d1 <= x"a"; d2 <= x"a"; d3 <= x"a"; d4 <= x"a";
-        elsif state = "101" or state = "110" then
-            if to_integer(unsigned(secs)) mod 10 < 7 then
-                d1 <= a1; d2 <= a2; d3 <= a3; d4 <= a4;
+        elsif state = "101" or state = "110" or state = "001" or state = "010" then
+            if s3 < 7 then
+                if state = "101" or state = "110" then
+                    d1 <= a1; d2 <= a2; d3 <= a3; d4 <= a4;
+                else 
+                    d1 <= c1; d2 <= c2; d3 <= c3; d4 <= c4;
+                end if;
             else 
-                if state = "101" then
+                if state = "001" then
+                    d1 <= x"f"; d2 <= x"f"; d3 <= c3; d4 <= c4;
+                elsif state = "010" then
+                    d1 <= c1; d2 <= c2; d3 <= x"f"; d4 <= x"f";
+                elsif state = "101" then
                     d1 <= x"f"; d2 <= x"f"; d3 <= a3; d4 <= a4;
                 else
                     d1 <= a1; d2 <= a2; d3 <= x"f"; d4 <= x"f";
                 end if;
             end if;
+        elsif state = "011" or (state = "000" and b2 = '1') then
+            d1 <= x"f"; d2 <= s1; d3 <= s2; d4 <= s3;
         else 
             d1 <= c1; d2 <= c2; d3 <= c3; d4 <= c4;
         end if;

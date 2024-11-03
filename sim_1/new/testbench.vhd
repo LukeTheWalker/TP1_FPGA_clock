@@ -34,11 +34,6 @@ architecture sim of tb_main is
         b1, b2        : in std_logic;
         d1, d2, d3, d4 : out std_logic_vector(3 downto 0);
         leds          : out std_logic
-        -- state         : out std_logic_vector(2 downto 0);
-        -- c1, c2, c3, c4 : out std_logic_vector(3 downto 0);
-        -- a1, a2, a3, a4 : out std_logic_vector(3 downto 0);
-        -- secs          : out std_logic_vector(3 downto 0);
-        -- aa            : out std_logic
     );
     end component;
 
@@ -48,11 +43,6 @@ architecture sim of tb_main is
     signal b1, b2    : std_logic := '0';
     signal d1, d2, d3, d4 : std_logic_vector(3 downto 0);
     signal leds      : std_logic;
-    -- signal state     : std_logic_vector(2 downto 0);
-    -- signal c1, c2, c3, c4 : std_logic_vector(3 downto 0);
-    -- signal a1, a2, a3, a4 : std_logic_vector(3 downto 0);
-    -- signal secs      : std_logic_vector(3 downto 0);
-    -- signal aa        : std_logic;
 
     -- Clock period definition (for simulation)
     constant clk_period : time := 0.1 sec;
@@ -70,17 +60,6 @@ begin
         d3 => d3,
         d4 => d4,
         leds => leds
-        -- c1 => c1,
-        -- c2 => c2,
-        -- c3 => c3,
-        -- c4 => c4,
-        -- a1 => a1,
-        -- a2 => a2,
-        -- a3 => a3,
-        -- a4 => a4,
-        -- secs => secs,
-        -- aa => aa,
-        -- state => state
     );
 
     -- Clock process
