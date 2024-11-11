@@ -33,7 +33,7 @@ architecture sim of tb_main is
         clk, rst      : in std_logic; 
         b1, b2        : in std_logic;
         d1, d2, d3, d4 : out std_logic_vector(3 downto 0);
-        leds          : out std_logic
+        aa_led          : out std_logic
     );
     end component;
 
@@ -42,7 +42,7 @@ architecture sim of tb_main is
     signal rst       : std_logic := '0';
     signal b1, b2    : std_logic := '0';
     signal d1, d2, d3, d4 : std_logic_vector(3 downto 0);
-    signal leds      : std_logic;
+    signal aa_led      : std_logic;
 
     -- Clock period definition (for simulation)
     constant clk_period : time := 0.1 sec;
@@ -59,7 +59,7 @@ begin
         d2 => d2,
         d3 => d3,
         d4 => d4,
-        leds => leds
+        aa_led => aa_led
     );
 
     -- Clock process
@@ -122,7 +122,7 @@ begin
 
         -- assert (state = "100") report "Error: State is not '100' (reset seconds)" severity error;
 
-        wait for 1 sec;
+        wait for 10 sec;
 
         b2 <= '1';  -- Reset seconds
         wait for 1 sec;

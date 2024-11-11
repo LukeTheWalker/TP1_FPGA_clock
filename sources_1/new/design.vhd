@@ -146,14 +146,14 @@ begin
         elsif clk'event and clk = '1' then
             s3 <= s3+1;
             if s3 >= x"9" then
-                s3 <= x"0"; s2 <= s2 + 1;
+                s3 <= s3 - x"9"; s2 <= s2 + 1;
                 if s2 >= x"9" then
-                    s2 <= x"0"; s1 <= s1 + 1;
+                    s2 <= s2 - x"9"; s1 <= s1 + 1;
 
                     secondary_function(b1,b2,state,a1,a2,a3,a4,aa,c1,c2,c3,c4,s1,s2,s3,damp1,damp2);
 
-                    if s1 >= x"6" and not (b2 = '1' and state = "011") then
-                        s1 <= x"0"; c4 <= c4 + 1;
+                    if s1 >= x"5" then
+                        s1 <= s1 - x"5"; c4 <= c4 + 1;
                         increment_clock(c1,c2,c3,c4);
                     end if;
                 end if;
@@ -161,22 +161,22 @@ begin
                 secondary_function(b1,b2,state,a1,a2,a3,a4,aa,c1,c2,c3,c4,s1,s2,s3,damp1,damp2);
             end if;
 
-            if c1 = a1 and c2 = a2 and c3 = a3 and c4 = a4 and aa = '1' then
+            if c1 = a1 and c2 = a2 and c3 = a3 and c4 = a4 and aa = '1' and s2 = x"1" then
                 snooze <= '1';
-            elsif b2 = '1' and snooze = '1' and state = "000" then
+            elsif b2 = '1' and snooze = '1' then
                 snooze <= '0';
             end if;
 
         end if;
     end process;
     
-    moore_machine : process(s1, s2, s3, c1, c2, c3, c4, a1, a2, a3, a4, state, snooze, b2)
+    mealy_machine : process(s1, s2, s3, c1, c2, c3, c4, a1, a2, a3, a4, state, snooze, b2)
     begin
         if snooze = '1' then
             d1 <= x"a"; d2 <= x"a"; d3 <= x"a"; d4 <= x"a";
-        elsif state = "101" or state = "110" or state = "001" or state = "010" then
-            if s3 < 7 then
-                if state = "101" or state = "110" then
+        elsif state = "101" or state = "110" or state = "001" or state = "010" or state = "100" then
+            if s3 < x"7" then
+                if state = "101" or state = "110" or state = "100" then
                     d1 <= a1; d2 <= a2; d3 <= a3; d4 <= a4;
                 else 
                     d1 <= c1; d2 <= c2; d3 <= c3; d4 <= c4;
@@ -188,8 +188,10 @@ begin
                     d1 <= c1; d2 <= c2; d3 <= x"f"; d4 <= x"f";
                 elsif state = "101" then
                     d1 <= x"f"; d2 <= x"f"; d3 <= a3; d4 <= a4;
-                else
+                elsif state = "110" then
                     d1 <= a1; d2 <= a2; d3 <= x"f"; d4 <= x"f";
+                else 
+                    d1 <= x"f"; d2 <= x"f"; d3 <= x"f"; d4 <= x"f";
                 end if;
             end if;
         elsif state = "011" or (state = "000" and b2 = '1') then
